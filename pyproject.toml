@@ -1,0 +1,63 @@
+[project]
+name = "batrachkait"
+version = "0.5.0"
+description = "BatrachkaIT: REST API for IT job search w/ structured vacancies & exact relational filtering"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "alembic>=1.20.1",
+    "asyncpg>=0.32.0",
+    "email-validator>=2.4.0",
+    "fastapi>=0.165.0",
+    "pwdlib[argon2]>=0.4.2",
+    "pydantic>=2.14.4",
+    "pydantic-settings>=2.16.3",
+    "pyjwt>=2.15.1",
+    "python-multipart>=0.0.34",
+    "sqlalchemy[asyncio]>=2.0.58,<2.1",
+    "uvicorn[standard]>=0.54.0",
+]
+
+[dependency-groups]
+dev = [
+    "httpx>=0.28.1",
+    "pytest>=9.2.0",
+    "pytest-asyncio>=1.5.0",
+    "pytest-cov>=7.1.0",
+    "ruff>=0.17.6",
+]
+
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/app"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "I", "UP", "B", "SIM", "ASYNC", "RUF"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["app", "tests"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra --strict-markers"
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "session"
+asyncio_default_test_loop_scope = "session"
+
+[tool.coverage.run]
+source = ["app"]
+branch = true
+
+[tool.coverage.report]
+fail_under = 70
+show_missing = true
+skip_covered = true
+exclude_also = ["if TYPE_CHECKING:", "class .*\\(Protocol\\):", "\\.\\.\\."]
