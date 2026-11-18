@@ -1,0 +1,148 @@
+@startuml BatrachkaIT_ERD
+
+!define PF_KEY(x) **PK & FK** x
+!define P_KEY(x) **PK** x
+!define F_KEY(x) **FK** x
+!theme carbon-gray
+
+skinparam defaultFontSize 18
+
+skinparam arrow {
+  Thickness 1
+  Color #262626
+  FontColor #262626
+}
+
+left to right direction
+title BatrachkaIT — ERD 
+
+
+enum UserRoleEnum {
+  CANDIDATE
+  RECRUITER
+}
+
+enum TechDomainEnum {
+  PYTHON
+  DOTNET
+  JAVA
+  GAMEDEV
+  PROJECT_MANAGEMENT
+  QA
+  EMBEDDED
+}
+
+enum CompanyTypeEnum {
+  PRODUCT
+  OUTSOURCE
+  OUTSTAFF
+  STARTUP
+}
+
+enum WorkFormatEnum {
+  REMOTE
+  OFFICE
+  HYBRID
+}
+
+enum EnglishLevelEnum {
+  NO_ENGLISH
+  BEGINNER
+  PRE_INTERMEDIATE
+  INTERMEDIATE
+  UPPER_INTERMEDIATE
+  ADVANCED
+  PROFICIENT
+}
+
+enum VacancyStatusEnum {
+  OPEN
+  CLOSED
+}
+
+enum ApplicationStatusEnum {
+  PENDING
+  ACCEPTED
+  REJECTED
+  HIRED
+}
+
+entity "Users" as users {
+  P_KEY(user_id)
+  --
+  email
+  hashed_password
+  role : UserRoleEnum
+  full_name
+  bio : TEXT
+  avatar_url
+  contact_info
+  created_at
+  updated_at
+}
+
+entity "Candidates" as candidates {
+  PF_KEY(candidate_id)
+  --
+  age
+  domain
+  experience_years
+  english_level : EnglishLevelEnum
+  expected_salary
+  resume_text
+}
+
+entity "Recruiters" as recruiters {
+  PF_KEY(recruiter_id)
+  --
+  company_name
+}
+
+entity "Vacancies" as vacancies {
+  P_KEY(id)
+  --
+  F_KEY(recruiter_id)
+  title 
+  description 
+  domain 
+  company_type 
+  work_format 
+  experience_years_required 
+  english_level_required 
+  salary_min 
+  salary_max 
+  status : VacancyStatusEnum 
+  created_at 
+  updated_at 
+}
+
+entity "Applications" as applications {
+  P_KEY(id)
+  --
+  F_KEY(vacancy_id) 
+  F_KEY(candidate_id)
+  cover_letter
+  status : ApplicationStatusEnum 
+  created_at
+  updated_at 
+}
+
+
+users ||--o| candidates : "ISA"
+users ||--o| recruiters : "ISA"
+recruiters ||--o{ vacancies : "publishes"
+vacancies ||--o{ applications : "receives"
+candidates ||--o{ applications : "submits"
+
+
+users ..> UserRoleEnum
+candidates ..> TechDomainEnum
+candidates ..> EnglishLevelEnum
+vacancies ..> TechDomainEnum
+vacancies ..> CompanyTypeEnum
+vacancies ..> WorkFormatEnum
+vacancies ..> EnglishLevelEnum
+vacancies ..> VacancyStatusEnum
+applications ..> ApplicationStatusEnum
+
+@enduml
