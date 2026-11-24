@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: batrachka
+          POSTGRES_PASSWORD: batrachka
+          POSTGRES_DB: batrachkait_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U batrachka"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    env:
+      TEST_DATABASE_URL: postgresql+asyncpg://batrachka:batrachka@localhost:5432/batrachkait_test
+      DATABASE_URL: postgresql+asyncpg://batrachka:batrachka@localhost:5432/batrachkait_test
+      JWT_SECRET_KEY: ci-secret-key-that-is-long-enough-for-hs256
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v7
+        with:
+          version: "0.13.6"
+      - run: uv sync --locked
+      - run: uv run ruff check .
+      - run: uv run ruff format --check .
+      - run: uv run alembic upgrade head
+      - run: uv run alembic check
+      - run: uv run alembic downgrade base
+      - run: uv run pytest --cov --cov-report=term-missing
