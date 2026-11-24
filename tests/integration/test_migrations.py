@@ -25,7 +25,8 @@ SCHEMA_OBJECTS = text(
 
 
 async def schema_objects(connection: AsyncConnection) -> set[str]:
-    return set((await connection.scalars(SCHEMA_OBJECTS)).all())
+    names = (await connection.scalars(SCHEMA_OBJECTS)).all()
+    return {name for name in names if not name.startswith("alembic_version")}
 
 
 async def test_migrations_match_models_and_downgrade_cleanly(app: FastAPI) -> None:
@@ -51,15 +52,12 @@ async def test_migrations_match_models_and_downgrade_cleanly(app: FastAPI) -> No
 
         await asyncio.to_thread(command.downgrade, config, "base")
         async with migrated.connect() as connection:
-            leftovers = await schema_objects(connection) - {
-                "pk_alembic_version",
-                "alembic_version_pkc",
-            }
+            leftovers = await schema_objects(connection)
     finally:
         await migrated.dispose()
         async with admin.connect() as connection:
             await connection.execute(text(f'DROP DATABASE IF EXISTS "{database}" WITH (FORCE)'))
         await admin.dispose()
 
-    assert from_migrations - {"alembic_version_pkc"} == from_models
+    assert from_migrations == from_models
     assert leftovers == set()
